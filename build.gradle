@@ -53,7 +53,7 @@ configure(subprojects) {
 
 subprojects {
   version = '$projectVersion'
-  ext.appName = 'simple-tetris'
+  ext.appName = 'Forest Friends'
   repositories {
     mavenCentral()
     maven { url 'https://s01.oss.sonatype.org' }
