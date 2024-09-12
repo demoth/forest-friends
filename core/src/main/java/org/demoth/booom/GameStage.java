@@ -1,7 +1,5 @@
 package org.demoth.booom;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -15,10 +13,13 @@ public class GameStage extends Stage {
         setViewport(new ExtendViewport(worldWidth, worldHeight));
         getCamera().position.set((float) worldWidth / 2, (float) worldHeight / 2, 0f);
 
-        TextureAtlas objectTexture = new TextureAtlas("objects-no-bg.txt");
-        Sprite sprite =  objectTexture.createSprite("Region_0");
-        Image actor = new Image(sprite);
-        addActor(actor);
+        TextureAtlas objectTexture = new TextureAtlas("objects-no-bg.atlas");
+        Image mushroom0 = new Image(objectTexture.createSprite("Mushroom_0"));
+        addActor(mushroom0);
+
+        Image mushroom1 = new Image(objectTexture.createSprite("Mushroom_1"));
+        mushroom1.setPosition(mushroom0.getX() + mushroom0.getWidth(), mushroom0.getY());
+        addActor(mushroom1);
     }
 
 }

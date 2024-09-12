@@ -2,49 +2,49 @@ objects-no-bg.png
   format: RGBA8888
   filter: Nearest,Nearest
   repeat: none
-Region_0
+Mushroom_0
   rotate: false
   xy: 0, 0
   size: 146, 146
   orig: 146, 146
   offset: 0, 0
   index: -1
-Region_1
+Mushroom_1
   rotate: false
   xy: 146, 0
   size: 146, 146
   orig: 146, 146
   offset: 0, 0
   index: -1
-Region_2
+Mushroom_2
   rotate: false
   xy: 292, 0
   size: 146, 146
   orig: 146, 146
   offset: 0, 0
   index: -1
-Region_3
+Mushroom_3
   rotate: false
   xy: 438, 0
   size: 146, 146
   orig: 146, 146
   offset: 0, 0
   index: -1
-Region_4
+Leaf_4
   rotate: false
   xy: 584, 0
   size: 146, 146
   orig: 146, 146
   offset: 0, 0
   index: -1
-Region_5
+Box_5
   rotate: false
   xy: 730, 0
   size: 146, 146
   orig: 146, 146
   offset: 0, 0
   index: -1
-Region_6
+Box_6
   rotate: false
   xy: 876, 0
   size: 146, 146
