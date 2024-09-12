@@ -95,6 +95,33 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     @Override
     public boolean fling(float velocityX, float velocityY, int button) {
+        Direction swipeDirection = null;
+        // calculate direction
+        if (Math.abs(velocityX) > Math.abs(velocityY)) {
+            if (velocityX > 0) {
+                swipeDirection = Direction.RIGHT;
+            } else if (velocityX < 0) {
+                swipeDirection = Direction.LEFT;
+            }
+        } else {
+            if (velocityY > 0) {
+                swipeDirection = Direction.DOWN;
+            } else if (velocityY < 0) {
+                swipeDirection = Direction.UP;
+            }
+        }
+
+        System.out.println("direction: " + swipeDirection);
+
+
+        // calculate origin tile
+
+        // calculate destination tile
+
+        // check borders
+
+        // start animation
+
         return false;
     }
 
@@ -131,4 +158,8 @@ class GameActor extends Image {
         super(sprite);
         this.name = name;
     }
+}
+
+enum Direction {
+    UP, DOWN, LEFT, RIGHT
 }
