@@ -9,6 +9,10 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /*
 
 high level plan:
@@ -27,6 +31,8 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     GameState state = GameState.READY_FOR_INPUT;
     private static final float ANIMATION_DURATION = 0.5f;
     private float animationTimeLeft = 0;
+    GameActor originTile;
+    GameActor destinationTile;
 
     // logical pixels
     int worldWidth;
@@ -36,12 +42,18 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     int touchedTileX;
     int touchedTileY;
+    int destTileX;
+    int destTileY;
+
     GameActor[][] board;
 
     public GameStage() {
 
         // logical state
         board = new GameActor[WIDTH][HEIGHT];
+        for (int x = 0; x < WIDTH; x++) {
+            board[x] = new GameActor[HEIGHT];
+        }
 
         worldWidth = 1024;
         worldHeight = 1024;
@@ -75,16 +87,68 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
             case ANIMATION:
                 animationTimeLeft -= delta;
                 if (animationTimeLeft <= 0f) {
-                    state = GameState.RUN_LOGIC;
                     animationTimeLeft = 0f;
+
+                    if (originTile != null) {
+                        state = GameState.RUN_LOGIC;
+                    } else {
+                        state = GameState.READY_FOR_INPUT;
+                    }
                 }
                 break;
             case RUN_LOGIC:
                 // todo: swap pieces, calculate score, merge, etc...
-                state = GameState.READY_FOR_INPUT;
+                if (calculateMatches()) {
+                    state = GameState.READY_FOR_INPUT;
+                    // todo: calculate score
+                } else {
+                    state = GameState.ANIMATION;
+                    animationTimeLeft = ANIMATION_DURATION;
+
+                    swap(touchedTileX, touchedTileY, destTileX, destTileY);
+
+                    // start the reverse animation
+                    originTile.addAction(Actions.moveTo(destinationTile.getX(), destinationTile.getY(), ANIMATION_DURATION));
+                    destinationTile.addAction(Actions.moveTo(originTile.getX(), originTile.getY(), ANIMATION_DURATION));
+
+                    originTile = null;
+                    destinationTile = null;
+                }
                 break;
         }
         super.act(delta);
+    }
+
+    /**
+     * iterate over the board of actors
+     * check if there are 3 or more same objects in a line
+     *
+     * @return if the matches were found, else the animation should be reversed
+     */
+    private boolean calculateMatches() {
+        // check vertical matches
+        for (int x = 0; x < WIDTH; x++) {
+            // check all columns for a 3+ match
+            List<GameActor> matched = new ArrayList<>(Collections.singletonList(board[x][0]));
+            for (int y = 1; y < HEIGHT; y++) {
+                // if two neighbouring tiles match, add them to the matched list, else, remove everything and add a second one
+                var newActor = board[x][y];
+                if (matched.get(0).name.equals(newActor.getName())) {
+                    matched.add(newActor);
+                } else {
+                    matched.clear();
+                    matched.add(newActor);
+                }
+            }
+            if (matched.size() >= 3) {
+                System.out.println("matched " + matched.size());
+                for (GameActor actor : matched) {
+                    actor.matched = true; // todo: decide what to do with them
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     private static GameActor createActor(TextureAtlas objectTexture, String name, int x, int y) {
@@ -153,13 +217,13 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         }
 
         // calculate destination tile
-        int destTileX = touchedTileX;
+        destTileX = touchedTileX;
         if (swipeDirection == Direction.RIGHT)
             destTileX = touchedTileX + 1;
         else if (swipeDirection == Direction.LEFT)
             destTileX = touchedTileX - 1;
 
-        int destTileY = touchedTileY;
+        destTileY = touchedTileY;
         if (swipeDirection == Direction.DOWN)
             destTileY = touchedTileY - 1;
         else if (swipeDirection == Direction.UP)
@@ -168,16 +232,13 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         System.out.println("fling: Destination: " + destTileX + " " + destTileY);
 
         // calculate origin tile
-        GameActor originTile = board[touchedTileX][touchedTileY];
-        GameActor destinationTile = board[destTileX][destTileY];
+        originTile = board[touchedTileX][touchedTileY];
+        destinationTile = board[destTileX][destTileY];
 
         originTile.addAction(Actions.moveTo(destinationTile.getX(), destinationTile.getY(), ANIMATION_DURATION));
         destinationTile.addAction(Actions.moveTo(originTile.getX(), originTile.getY(), ANIMATION_DURATION));
 
-        // switch actors on the board
-        GameActor temp = board[touchedTileX][touchedTileY];
-        board[touchedTileX][touchedTileY] = board[destTileX][destTileY];
-        board[destTileX][destTileY] = temp;
+        swap(touchedTileX, touchedTileY, destTileX, destTileY);
 
         // start animation
         state = GameState.ANIMATION;
@@ -185,6 +246,13 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
         // todo: cleanup, making sure fling will not be executed with stale parameters
         return false;
+    }
+
+    private void swap(int touchedTileX, int touchedTileY, int destTileX, int destTileY) {
+        // switch actors on the board
+        GameActor temp = board[touchedTileX][touchedTileY];
+        board[touchedTileX][touchedTileY] = board[destTileX][destTileY];
+        board[destTileX][destTileY] = temp;
     }
 
     @Override
@@ -212,7 +280,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     }
 
-//    @Override
+    //    @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 //        touchedTileY = -1;
 //        touchedTileX = -1;
@@ -222,12 +290,16 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 }
 
 class GameActor extends Image {
-    private final String name;
+    final String name;
+    boolean matched;
 
     public GameActor(String name, Sprite sprite) {
         super(sprite);
         this.name = name;
     }
+
+    @Override
+    public String toString() { return name; }
 }
 
 enum Direction {
