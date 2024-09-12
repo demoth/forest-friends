@@ -2,6 +2,8 @@ package org.demoth.booom;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -20,20 +22,29 @@ high level plan:
  */
 
 
-public class GameStage extends Stage {
+public class GameStage extends Stage implements GestureDetector.GestureListener {
     private static final int WIDTH = 8;
     private static final int HEIGHT = 8;
+
+    // logical pixels
+    int worldWidth;
+    int worldHeight;
+    int tileWidth;
+    int tileHeight;
+
+    int touchedTileX;
+    int touchedTileY;
 
     public GameStage() {
 
         // logical state
         GameActor[][] gameState = new GameActor[WIDTH][HEIGHT];
 
-        int worldWidth = 1024;
-        int worldHeight = 1024;
+        worldWidth = 1024;
+        worldHeight = 1024;
 
-        int tileWidth = worldWidth / WIDTH;
-        int tileHeight = worldHeight / HEIGHT;
+        tileWidth = worldWidth / WIDTH;
+        tileHeight = worldHeight / HEIGHT;
 
         setViewport(new ExtendViewport(worldWidth, worldHeight));
         getCamera().position.set((float) worldWidth / 2, (float) worldHeight / 2, 0f);
@@ -57,6 +68,59 @@ public class GameStage extends Stage {
         GameActor mushroom1 = new GameActor(name, objectTexture.createSprite(name));
         mushroom1.setPosition(x, y);
         return mushroom1;
+    }
+
+    @Override
+    public boolean touchDown(float screenX, float screenY, int pointer, int button) {
+        // convert the screen coords into world
+        Vector2 worldCoords = getViewport().unproject(new Vector2(screenX, screenY));
+        // determine tile on the world coords
+        touchedTileX = (int) worldCoords.x / tileWidth;
+        touchedTileY = (int) worldCoords.y / tileHeight;
+
+        System.out.println("Touched tile: " + touchedTileX + " " + touchedTileY);
+
+        return false;
+    }
+
+    @Override
+    public boolean tap(float x, float y, int count, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean longPress(float x, float y) {
+        return false;
+    }
+
+    @Override
+    public boolean fling(float velocityX, float velocityY, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean pan(float x, float y, float deltaX, float deltaY) {
+        return false;
+    }
+
+    @Override
+    public boolean panStop(float x, float y, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean zoom(float initialDistance, float distance) {
+        return false;
+    }
+
+    @Override
+    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
+        return false;
+    }
+
+    @Override
+    public void pinchStop() {
+
     }
 }
 
