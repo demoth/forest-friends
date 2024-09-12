@@ -19,7 +19,6 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(new InputMultiplexer(activeStage, new GestureDetector((GestureDetector.GestureListener) activeStage)));
-
     }
 
     @Override
