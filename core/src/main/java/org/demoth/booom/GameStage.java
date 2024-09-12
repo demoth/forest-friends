@@ -1,5 +1,6 @@
 package org.demoth.booom;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -15,7 +16,6 @@ high level plan:
  -
 
  */
-
 
 
 public class GameStage extends Stage {
@@ -42,9 +42,18 @@ public class GameStage extends Stage {
         }
     }
 
-    private static Image createActor(TextureAtlas objectTexture, String name, int x, int y) {
-        Image mushroom1 = new Image(objectTexture.createSprite(name));
+    private static GameActor createActor(TextureAtlas objectTexture, String name, int x, int y) {
+        GameActor mushroom1 = new GameActor(name, objectTexture.createSprite(name));
         mushroom1.setPosition(x, y);
         return mushroom1;
+    }
+}
+
+class GameActor extends Image {
+    private final String name;
+
+    public GameActor(String name, Sprite sprite) {
+        super(sprite);
+        this.name = name;
     }
 }
