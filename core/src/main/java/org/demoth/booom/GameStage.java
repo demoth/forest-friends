@@ -1,5 +1,7 @@
 package org.demoth.booom;
 
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.input.GestureDetector;
@@ -34,11 +36,12 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     int touchedTileX;
     int touchedTileY;
+    GameActor[][] gameState;
 
     public GameStage() {
 
         // logical state
-        GameActor[][] gameState = new GameActor[WIDTH][HEIGHT];
+        gameState = new GameActor[WIDTH][HEIGHT];
 
         worldWidth = 1024;
         worldHeight = 1024;
@@ -95,6 +98,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     @Override
     public boolean fling(float velocityX, float velocityY, int button) {
+        // todo: ensure that tap was executed with corresponding tap event
         Direction swipeDirection = null;
         // calculate direction
         if (Math.abs(velocityX) > Math.abs(velocityY)) {
@@ -113,15 +117,35 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
         System.out.println("direction: " + swipeDirection);
 
-
-        // calculate origin tile
+        // check borders, for example, do nothing if swiping to the right from the very right column
+        if (swipeDirection == Direction.RIGHT && touchedTileX == WIDTH - 1
+            || swipeDirection == Direction.LEFT && touchedTileX == 0
+            || swipeDirection == Direction.DOWN && touchedTileY == 0
+            || swipeDirection == Direction.UP && touchedTileY == HEIGHT - 1) {
+            return true;
+        }
 
         // calculate destination tile
+        int destTileX = touchedTileX;
+        if (swipeDirection == Direction.RIGHT)
+            destTileX = touchedTileX + 1;
+        else if (swipeDirection == Direction.LEFT)
+            destTileX = touchedTileX - 1;
 
-        // check borders
+        int destTileY = touchedTileY;
+        if (swipeDirection == Direction.DOWN)
+            destTileY = touchedTileY - 1;
+        else if (swipeDirection == Direction.UP)
+            destTileY = touchedTileY + 1;
+
+        System.out.println("Destination: " + destTileX + " " + destTileY);
+
+        // calculate origin tile
+//        GameActor originTile = gameState[touchedTileX][touchedTileY];
 
         // start animation
 
+        // todo: cleanup, making sure fling will not be executed with stale parameters
         return false;
     }
 
@@ -148,6 +172,14 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     @Override
     public void pinchStop() {
 
+    }
+
+//    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+//        touchedTileY = -1;
+//        touchedTileX = -1;
+        System.out.println("Touch up");
+        return false;
     }
 }
 
