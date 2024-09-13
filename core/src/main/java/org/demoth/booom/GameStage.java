@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.actions.ParallelAction;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
 import com.badlogic.gdx.utils.Array;
@@ -78,21 +79,37 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     }
 
     private void respawnTiles() {
-        Array<TextureAtlas.AtlasRegion> regions = atlas.getRegions();
-        var random = new java.util.Random();
-
         clear();
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
-                String regionName = generateNewTile(regions, random);
-                GameActor actor = createActor(atlas, regionName, tileWidth * x, tileHeight * y);
-                board[x][y] = actor;
-                addActor(actor); // visual state
+                spawnActor(x, y);
             }
         }
     }
 
-    private static String generateNewTile(Array<TextureAtlas.AtlasRegion> regions, Random random) {
+    private void respawnMatchedTiles() {
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                var actor = board[x][y];
+                if (actor.matched) {
+                    // Visual state: actor is removed from the stage at the end of the animation.
+                    // Logical state: updated upon spawn
+                    spawnActor(x, y);
+                }
+            }
+        }
+    }
+
+    private void spawnActor(int x, int y) {
+        String regionName = selectRandomTile(atlas.getRegions(), new Random());
+        GameActor actor = new GameActor(regionName, atlas.createSprite(regionName), tileWidth * x, tileHeight * y);
+        board[x][y] = actor; // logical state
+        actor.playSpawnAnimation();
+        addActor(actor); // visual state
+
+    }
+
+    private static String selectRandomTile(Array<TextureAtlas.AtlasRegion> regions, Random random) {
 //        int randomIndex = random.nextInt(regions.size);
         List<String> pool = List.of("Mushroom_0", "Leaf_4", "Box_5", "Region_25");
         return pool.get(random.nextInt(pool.size()));
@@ -123,6 +140,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
                     state = GameState.READY_FOR_INPUT;
                     // todo: calculate score
                     // todo: generate new tiles, etc...
+                    respawnMatchedTiles();
                 } else {
                     state = GameState.ANIMATION;
                     animationTimeLeft = ANIMATION_DURATION;
@@ -186,12 +204,6 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
             return true;
         }
         return false;
-    }
-
-    private static GameActor createActor(TextureAtlas objectTexture, String name, int x, int y) {
-        GameActor actor = new GameActor(name, objectTexture.createSprite(name));
-        actor.setPosition(x, y);
-        return actor;
     }
 
     @Override
@@ -333,11 +345,13 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
 class GameActor extends Group {
     final String spriteName;
-    private boolean matched; // todo: decide what to do with them
+    boolean matched; // todo: decide what to do with them
     private final ParticleEffectActor effect;
     private final Image imageActor;
 
-    public GameActor(String spriteName, Sprite sprite) {
+    public GameActor(String spriteName, Sprite sprite, int x, int y) {
+        setPosition(x, y);
+
         ParticleEffect starExplosion1 = new ParticleEffect();
         starExplosion1.load(Gdx.files.internal("effects/explosion.p"), Gdx.files.internal("effects"));
         effect = new ParticleEffectActor(starExplosion1, true);
@@ -351,18 +365,42 @@ class GameActor extends Group {
         this.spriteName = spriteName;
     }
 
+    public void die() {
+        effect.dispose();
+        remove();
+    }
+
     public void applyMatch() {
         matched = true;
-        imageActor.addAction(Actions.parallel(
-            Actions.scaleTo(0f, 0f, GameStage.ANIMATION_DURATION),
-            Actions.moveBy(imageActor.getImageWidth() / 2, imageActor.getImageHeight() / 2, GameStage.ANIMATION_DURATION)
-        ));
+        imageActor.addAction(
+            Actions.sequence(scaleCentered(false),
+                Actions.run(this::die)));
         effect.start();
+    }
+
+    ParallelAction scaleCentered(boolean up) {
+        float scaleFactor = up ? 1f : 0f;
+        float positionX = imageActor.getWidth() / 2;
+        float positionY = imageActor.getHeight() / 2;
+
+        if (up) {
+            imageActor.moveBy(positionX, positionY);
+            imageActor.setScale(0f);
+        }
+
+        return Actions.parallel(
+            Actions.scaleTo(scaleFactor, scaleFactor, GameStage.ANIMATION_DURATION),
+            Actions.moveBy(up ? -positionX : positionX, up ? - positionY: positionY, GameStage.ANIMATION_DURATION)
+        );
     }
 
     @Override
     public String toString() {
         return spriteName;
+    }
+
+    public void playSpawnAnimation() {
+        imageActor.addAction(scaleCentered(true));
     }
 }
 
