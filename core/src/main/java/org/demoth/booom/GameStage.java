@@ -35,7 +35,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     private static final int HEIGHT = 8;
 
     GameState state = GameState.READY_FOR_INPUT;
-    private static final float ANIMATION_DURATION = 0.5f;
+    static final float ANIMATION_DURATION = 0.5f;
     private float animationTimeLeft = 0;
     GameActor originTile;
     GameActor destinationTile;
@@ -174,9 +174,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         if (matched.size() >= 3) {
             System.out.println("matched vertical " + matched.size());
             for (GameActor actor : matched) {
-                actor.matched = true; // todo: decide what to do with them
-//                actor.effect.setPosition(actor.getX(), actor.getY());
-                actor.effect.start();
+                actor.applyMatch();
             }
             return true;
         }
@@ -323,17 +321,31 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
 class GameActor extends Group {
     final String spriteName;
-    boolean matched;
-    ParticleEffectActor effect;
+    private boolean matched; // todo: decide what to do with them
+    private final ParticleEffectActor effect;
+    private final Image imageActor;
 
     public GameActor(String spriteName, Sprite sprite) {
         ParticleEffect starExplosion1 = new ParticleEffect();
         starExplosion1.load(Gdx.files.internal("effects/explosion.p"), Gdx.files.internal("effects"));
         effect = new ParticleEffectActor(starExplosion1, true);
+        effect.setPosition(sprite.getWidth() / 2f, sprite.getHeight() / 2f);
+
+        imageActor = new Image(sprite);
+        addActor(imageActor);
+
         addActor(effect);
 
-        addActor(new Image(sprite));
         this.spriteName = spriteName;
+    }
+
+    public void applyMatch() {
+        matched = true;
+        imageActor.addAction(Actions.parallel(
+            Actions.scaleTo(0f, 0f, GameStage.ANIMATION_DURATION),
+            Actions.moveBy(imageActor.getImageWidth() / 2, imageActor.getImageHeight() / 2, GameStage.ANIMATION_DURATION)
+        ));
+        effect.start();
     }
 
     @Override
