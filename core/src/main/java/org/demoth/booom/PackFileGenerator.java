@@ -1,3 +1,4 @@
+/*
 package org.demoth.booom;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -45,3 +46,4 @@ public class PackFileGenerator {
         generatePackFile("objects-no-bg", 1024, 1024, 7, 7);
     }
 }
+*/
