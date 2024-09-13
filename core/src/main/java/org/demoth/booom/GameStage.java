@@ -7,11 +7,10 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /*
 
@@ -71,12 +70,20 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
-                String regionName = regions.get(random.nextInt(regions.size)).name;
+                String regionName = generateNewTile(regions, random);
                 GameActor actor = createActor(atlas, regionName, tileWidth * x, tileHeight * y);
                 board[x][y] = actor;
                 addActor(actor); // visual state
             }
         }
+    }
+
+    private static String generateNewTile(Array<TextureAtlas.AtlasRegion> regions, Random random) {
+//        int randomIndex = random.nextInt(regions.size);
+        List<String> pool = List.of("Mushroom_0", "Leaf_4", "Box_5", "Region_25");
+        return pool.get(random.nextInt(pool.size()));
+//        int randomIndex = random.nextInt(4);
+//        return regions.get(randomIndex).name;
     }
 
     @Override
@@ -89,7 +96,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
                 if (animationTimeLeft <= 0f) {
                     animationTimeLeft = 0f;
 
-                    if (originTile != null) {
+                    if (originTile != null) { // assert destinationTile != null
                         state = GameState.RUN_LOGIC;
                     } else {
                         state = GameState.READY_FOR_INPUT;
@@ -101,6 +108,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
                 if (calculateMatches()) {
                     state = GameState.READY_FOR_INPUT;
                     // todo: calculate score
+                    // todo: generate new tiles, etc...
                 } else {
                     state = GameState.ANIMATION;
                     animationTimeLeft = ANIMATION_DURATION;
@@ -126,27 +134,42 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
      * @return if the matches were found, else the animation should be reversed
      */
     private boolean calculateMatches() {
+        var result = false;
+
         // check vertical matches
         for (int x = 0; x < WIDTH; x++) {
             // check all columns for a 3+ match
-            List<GameActor> matched = new ArrayList<>(Collections.singletonList(board[x][0]));
+            List<GameActor> columnMatched = new ArrayList<>(Collections.singletonList(board[x][0]));
             for (int y = 1; y < HEIGHT; y++) {
                 // if two neighbouring tiles match, add them to the matched list, else, remove everything and add a second one
                 var newActor = board[x][y];
-                if (matched.get(0).name.equals(newActor.getName())) {
-                    matched.add(newActor);
+                if (columnMatched.get(0).spriteName.equals(newActor.spriteName)) {
+                    columnMatched.add(newActor);
                 } else {
-                    matched.clear();
-                    matched.add(newActor);
+
+                    if (markMatchedTiles(columnMatched))
+                        result = true;
+
+                    columnMatched.clear();
+                    columnMatched.add(newActor);
                 }
             }
-            if (matched.size() >= 3) {
-                System.out.println("matched " + matched.size());
-                for (GameActor actor : matched) {
-                    actor.matched = true; // todo: decide what to do with them
-                }
-                return true;
+            if (markMatchedTiles(columnMatched))
+                result = true;
+        }
+
+        // todo: check horizontal matches
+
+        return result;
+    }
+
+    private static boolean markMatchedTiles(List<GameActor> matched) {
+        if (matched.size() >= 3) {
+            System.out.println("matched vertical " + matched.size());
+            for (GameActor actor : matched) {
+                actor.matched = true; // todo: decide what to do with them
             }
+            return true;
         }
         return false;
     }
@@ -290,16 +313,16 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 }
 
 class GameActor extends Image {
-    final String name;
+    final String spriteName;
     boolean matched;
 
-    public GameActor(String name, Sprite sprite) {
+    public GameActor(String spriteName, Sprite sprite) {
         super(sprite);
-        this.name = name;
+        this.spriteName = spriteName;
     }
 
     @Override
-    public String toString() { return name; }
+    public String toString() { return spriteName; }
 }
 
 enum Direction {
