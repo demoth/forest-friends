@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
@@ -44,9 +45,11 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     GameActor originTile;
     GameActor destinationTile;
 
+    int score = 0;
+
     // logical pixels
-    int worldWidth;
-    int worldHeight;
+    int boardWidth;
+    int boardHeight;
     int tileWidth;
     int tileHeight;
 
@@ -63,13 +66,20 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     Skin skin;
 
     public GameStage() {
-        worldWidth = 1024;
-        worldHeight = 1024;
+        boardWidth = 1024;
+        boardHeight = 1024;
 
         skin = new Skin(Gdx.files.internal("uiskin.json"));
-        scoreLabel = new Label("Score: 0", skin);
-        scoreLabel.setPosition(0, (float) worldHeight - scoreLabel.getHeight() / 2f);
+
+        scoreLabel = new Label("", skin);
+        scoreLabel.setAlignment(Align.left, Align.left);
+        scoreLabel.setPosition(0, (float) boardHeight + scoreLabel.getHeight());
         addActor(scoreLabel);
+
+        Label versionLabel = new Label("v0.1 13 Sep 2024", skin);
+        versionLabel.setAlignment(Align.right, Align.left);
+        versionLabel.setPosition(boardWidth - versionLabel.getWidth(), (float) boardHeight);
+        addActor(versionLabel);
 
         // logical state
         board = new GameActor[WIDTH][HEIGHT];
@@ -81,11 +91,11 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         addActor(boardGroup);
 
 
-        tileWidth = worldWidth / WIDTH;
-        tileHeight = worldHeight / HEIGHT;
+        tileWidth = boardWidth / WIDTH;
+        tileHeight = boardHeight / HEIGHT;
 
-        setViewport(new ExtendViewport(worldWidth, worldHeight + 30));
-        getCamera().position.set((float) worldWidth / 2, (float) worldHeight / 2, 0f);
+        setViewport(new ExtendViewport(boardWidth, boardHeight + 50));
+        getCamera().position.set((float) boardWidth / 2, (float) boardHeight / 2, 0f);
 
         atlas = new TextureAtlas("objects-no-bg.atlas");
 
@@ -94,6 +104,8 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     private void respawnTiles() {
         boardGroup.clear();
+        score = 0;
+        scoreLabel.setText("Score: " + score);
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 spawnActor(x, y);
@@ -129,6 +141,11 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         return pool.get(random.nextInt(pool.size()));
 //        int randomIndex = random.nextInt(4);
 //        return regions.get(randomIndex).name;
+    }
+
+    private void addScore(int bonus) {
+        score += bonus;
+        scoreLabel.setText("Score: " + score);
     }
 
     @Override
@@ -193,15 +210,19 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
                     columnMatched.add(newActor);
                 } else {
 
-                    if (markMatchedTiles(columnMatched))
+                    // check matched tiles when a different tile is found
+                    if (markMatchedTiles(columnMatched)) {
                         result = true;
+                    }
 
                     columnMatched.clear();
                     columnMatched.add(newActor);
                 }
             }
-            if (markMatchedTiles(columnMatched))
+            // check matched tiles when we reach the end of the column
+            if (markMatchedTiles(columnMatched)) {
                 result = true;
+            }
         }
 
         // todo: check horizontal matches
@@ -209,12 +230,13 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         return result;
     }
 
-    private static boolean markMatchedTiles(List<GameActor> matched) {
+    private boolean markMatchedTiles(List<GameActor> matched) {
         if (matched.size() >= 3) {
             System.out.println("matched vertical " + matched.size());
             for (GameActor actor : matched) {
                 actor.applyMatch();
             }
+            addScore(matched.size());
             return true;
         }
         return false;
