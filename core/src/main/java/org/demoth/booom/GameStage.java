@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -75,7 +76,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         scoreLabel.setPosition(0, (float) boardHeight + scoreLabel.getHeight());
         addActor(scoreLabel);
 
-        Label versionLabel = new Label("v0.1 13 Sep 2024", skin);
+        Label versionLabel = new Label("v0.1 13 Sep 2024 demoth.dev", skin);
         versionLabel.setAlignment(Align.right, Align.left);
         versionLabel.setPosition(boardWidth - versionLabel.getWidth(), (float) boardHeight);
         addActor(versionLabel);
@@ -120,7 +121,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     private List<String> createNewTilesPool() {
         List<String> result = new ArrayList<>();
         while (result.size() < 4) {
-            int randomIndex = new Random().nextInt(atlas.getRegions().size);
+            int randomIndex = MathUtils.random(atlas.getRegions().size - 1);
             String regionName = atlas.getRegions().get(randomIndex).name;
             if (!result.contains(regionName)) {
                 result.add(regionName);
@@ -143,15 +144,15 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     }
 
     private void spawnActor(int x, int y) {
-        String regionName = selectRandomTile(new Random());
+        String regionName = selectRandomTile();
         GameActor actor = new GameActor(regionName, atlas.createSprite(regionName), tileWidth * x, tileHeight * y);
         board[x][y] = actor; // logical state
         actor.playSpawnAnimation();
         boardGroup.addActor(actor); // visual state
     }
 
-    private String selectRandomTile(Random random) {
-        var index = random.nextInt(spritesPool.size());
+    private String selectRandomTile() {
+        var index = MathUtils.random(spritesPool.size() - 1);
         return spritesPool.get(index);
     }
 

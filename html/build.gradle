@@ -86,7 +86,7 @@ clean.delete += [file("war")]
 // This is relative to the html/ folder.
 var outputPath = "build/dist/"
 
-task dist(dependsOn: [clean, compileGwt]) {
+task dist(dependsOn: [compileGwt]) {
   doLast {
     // Uncomment the next line if you have changed outputPath and know that its contents
     // should be replaced by a new dist build. Some large JS files are not cleaned up by
