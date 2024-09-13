@@ -4,6 +4,8 @@ A simple match 3 game implemented in libGDX. My first web game.
 
 ![Screenshot](screenshot1.png)
 
+Available at https://demoth.dev/games/forest-friends/
+
 A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
 
 This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
