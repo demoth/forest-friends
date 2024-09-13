@@ -225,7 +225,33 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
             }
         }
 
-        // todo: check horizontal matches
+        // check horizontal matches (copy-paste of the code above)
+        for (int y = 0; y < HEIGHT; y++) {
+
+            // check all rows for a 3+ match
+            List<GameActor> rowsMatched = new ArrayList<>(Collections.singletonList(board[0][y]));
+            for (int x = 1; x < WIDTH; x++) {
+
+                // if two neighbouring tiles match, add them to the matched list, else, remove everything and add a second one
+                var newActor = board[x][y];
+                if (rowsMatched.get(0).spriteName.equals(newActor.spriteName)) {
+                    rowsMatched.add(newActor);
+                } else {
+
+                    // check matched tiles when a different tile is found
+                    if (markMatchedTiles(rowsMatched)) {
+                        result = true;
+                    }
+
+                    rowsMatched.clear();
+                    rowsMatched.add(newActor);
+                }
+            }
+            // check matched tiles when we reach the end of the column
+            if (markMatchedTiles(rowsMatched)) {
+                result = true;
+            }
+        }
 
         return result;
     }
