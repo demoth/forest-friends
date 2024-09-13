@@ -19,10 +19,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /*
 
@@ -65,6 +62,8 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     Skin skin;
 
+    List<String> spritesPool; // recalculated randomly on every new game
+
     public GameStage() {
         boardWidth = 1024;
         boardHeight = 1024;
@@ -103,6 +102,11 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     }
 
     private void respawnTiles() {
+
+        // pick 4 random regions from the atlas for the spritePool
+        spritesPool = createNewTilesPool();
+
+
         boardGroup.clear();
         score = 0;
         scoreLabel.setText("Score: " + score);
@@ -111,6 +115,18 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
                 spawnActor(x, y);
             }
         }
+    }
+
+    private List<String> createNewTilesPool() {
+        List<String> result = new ArrayList<>();
+        while (result.size() < 4) {
+            int randomIndex = new Random().nextInt(atlas.getRegions().size);
+            String regionName = atlas.getRegions().get(randomIndex).name;
+            if (!result.contains(regionName)) {
+                result.add(regionName);
+            }
+        }
+        return result;
     }
 
     private void respawnMatchedTiles() {
@@ -127,20 +143,16 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     }
 
     private void spawnActor(int x, int y) {
-        String regionName = selectRandomTile(atlas.getRegions(), new Random());
+        String regionName = selectRandomTile(new Random());
         GameActor actor = new GameActor(regionName, atlas.createSprite(regionName), tileWidth * x, tileHeight * y);
         board[x][y] = actor; // logical state
         actor.playSpawnAnimation();
         boardGroup.addActor(actor); // visual state
-
     }
 
-    private static String selectRandomTile(Array<TextureAtlas.AtlasRegion> regions, Random random) {
-//        int randomIndex = random.nextInt(regions.size);
-        List<String> pool = List.of("Mushroom_0", "Leaf_4", "Box_5", "Region_25");
-        return pool.get(random.nextInt(pool.size()));
-//        int randomIndex = random.nextInt(4);
-//        return regions.get(randomIndex).name;
+    private String selectRandomTile(Random random) {
+        var index = random.nextInt(spritesPool.size());
+        return spritesPool.get(index);
     }
 
     private void addScore(int bonus) {
