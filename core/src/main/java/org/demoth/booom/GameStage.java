@@ -53,9 +53,6 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     GameActor[][] board;
 
-    ParticleEffect starExplosion;
-
-
     public GameStage() {
 
         // logical state
@@ -76,15 +73,12 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         TextureAtlas atlas = new TextureAtlas("objects-no-bg.atlas");
         var regions = atlas.getRegions();
 
-        starExplosion = new ParticleEffect();
-        starExplosion.load(Gdx.files.internal("effects/explosion.p"), Gdx.files.internal("effects"));
-
         var random = new java.util.Random();
 
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 String regionName = generateNewTile(regions, random);
-                GameActor actor = createActor(atlas, regionName, tileWidth * x, tileHeight * y, starExplosion);
+                GameActor actor = createActor(atlas, regionName, tileWidth * x, tileHeight * y);
                 board[x][y] = actor;
                 addActor(actor); // visual state
             }
@@ -181,6 +175,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
             System.out.println("matched vertical " + matched.size());
             for (GameActor actor : matched) {
                 actor.matched = true; // todo: decide what to do with them
+//                actor.effect.setPosition(actor.getX(), actor.getY());
                 actor.effect.start();
             }
             return true;
@@ -188,8 +183,8 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         return false;
     }
 
-    private static GameActor createActor(TextureAtlas objectTexture, String name, int x, int y, ParticleEffect starExplosion) {
-        GameActor actor = new GameActor(name, objectTexture.createSprite(name), starExplosion);
+    private static GameActor createActor(TextureAtlas objectTexture, String name, int x, int y) {
+        GameActor actor = new GameActor(name, objectTexture.createSprite(name));
         actor.setPosition(x, y);
         return actor;
     }
@@ -331,10 +326,13 @@ class GameActor extends Group {
     boolean matched;
     ParticleEffectActor effect;
 
-    public GameActor(String spriteName, Sprite sprite, ParticleEffect starExplosion) {
-        addActor(new Image(sprite));
-        effect = new ParticleEffectActor(starExplosion, true);
+    public GameActor(String spriteName, Sprite sprite) {
+        ParticleEffect starExplosion1 = new ParticleEffect();
+        starExplosion1.load(Gdx.files.internal("effects/explosion.p"), Gdx.files.internal("effects"));
+        effect = new ParticleEffectActor(starExplosion1, true);
         addActor(effect);
+
+        addActor(new Image(sprite));
         this.spriteName = spriteName;
     }
 

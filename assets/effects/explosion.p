@@ -5,20 +5,20 @@ active: false
 lowMin: 100.0
 lowMax: 100.0
 - Count - 
-min: 6
-max: 10
+min: 3
+max: 6
 - Emission - 
 lowMin: 0.0
 lowMax: 0.0
-highMin: 250.0
-highMax: 250.0
+highMin: 100.0
+highMax: 100.0
 relative: false
 scalingCount: 1
 scaling0: 1.0
 timelineCount: 1
 timeline0: 0.0
 - Life - 
-lowMin: 0.0
+lowMin: 200.0
 lowMax: 0.0
 highMin: 500.0
 highMax: 1000.0
@@ -60,13 +60,13 @@ scaling0: 1.0
 timelineCount: 1
 timeline0: 0.0
 - X Scale - 
-lowMin: 0.0
-lowMax: 0.0
-highMin: 100.0
-highMax: 100.0
+lowMin: 10.0
+lowMax: 10.0
+highMin: 10.0
+highMax: 20.0
 relative: false
 scalingCount: 2
-scaling0: 1.0
+scaling0: 0.0
 scaling1: 1.0
 timelineCount: 2
 timeline0: 0.0
@@ -77,8 +77,8 @@ active: false
 active: true
 lowMin: 0.0
 lowMax: 0.0
-highMin: 1000.0
-highMax: 1000.0
+highMin: 100.0
+highMax: 100.0
 relative: false
 scalingCount: 3
 scaling0: 1.0
@@ -148,5 +148,5 @@ behind: false
 premultipliedAlpha: false
 spriteMode: single
 - Image Paths -
-particle-star-128.png
+particle-star-32.png
 
