@@ -1,16 +1,23 @@
 package org.demoth.booom;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 /*
 
@@ -46,6 +53,9 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     GameActor[][] board;
 
+    ParticleEffect starExplosion;
+
+
     public GameStage() {
 
         // logical state
@@ -66,12 +76,15 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         TextureAtlas atlas = new TextureAtlas("objects-no-bg.atlas");
         var regions = atlas.getRegions();
 
+        starExplosion = new ParticleEffect();
+        starExplosion.load(Gdx.files.internal("effects/explosion.p"), Gdx.files.internal("effects"));
+
         var random = new java.util.Random();
 
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 String regionName = generateNewTile(regions, random);
-                GameActor actor = createActor(atlas, regionName, tileWidth * x, tileHeight * y);
+                GameActor actor = createActor(atlas, regionName, tileWidth * x, tileHeight * y, starExplosion);
                 board[x][y] = actor;
                 addActor(actor); // visual state
             }
@@ -168,16 +181,17 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
             System.out.println("matched vertical " + matched.size());
             for (GameActor actor : matched) {
                 actor.matched = true; // todo: decide what to do with them
+                actor.effect.start();
             }
             return true;
         }
         return false;
     }
 
-    private static GameActor createActor(TextureAtlas objectTexture, String name, int x, int y) {
-        GameActor mushroom1 = new GameActor(name, objectTexture.createSprite(name));
-        mushroom1.setPosition(x, y);
-        return mushroom1;
+    private static GameActor createActor(TextureAtlas objectTexture, String name, int x, int y, ParticleEffect starExplosion) {
+        GameActor actor = new GameActor(name, objectTexture.createSprite(name), starExplosion);
+        actor.setPosition(x, y);
+        return actor;
     }
 
     @Override
@@ -312,17 +326,22 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     }
 }
 
-class GameActor extends Image {
+class GameActor extends Group {
     final String spriteName;
     boolean matched;
+    ParticleEffectActor effect;
 
-    public GameActor(String spriteName, Sprite sprite) {
-        super(sprite);
+    public GameActor(String spriteName, Sprite sprite, ParticleEffect starExplosion) {
+        addActor(new Image(sprite));
+        effect = new ParticleEffectActor(starExplosion, true);
+        addActor(effect);
         this.spriteName = spriteName;
     }
 
     @Override
-    public String toString() { return spriteName; }
+    public String toString() {
+        return spriteName;
+    }
 }
 
 enum Direction {
