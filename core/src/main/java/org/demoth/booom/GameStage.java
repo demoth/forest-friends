@@ -12,7 +12,9 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.actions.ParallelAction;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ParticleEffectActor;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
@@ -54,9 +56,20 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     int destTileY;
 
     GameActor[][] board;
+    Group boardGroup;
     TextureAtlas atlas;
+    Label scoreLabel;
+
+    Skin skin;
 
     public GameStage() {
+        worldWidth = 1024;
+        worldHeight = 1024;
+
+        skin = new Skin(Gdx.files.internal("uiskin.json"));
+        scoreLabel = new Label("Score: 0", skin);
+        scoreLabel.setPosition(0, (float) worldHeight - scoreLabel.getHeight() / 2f);
+        addActor(scoreLabel);
 
         // logical state
         board = new GameActor[WIDTH][HEIGHT];
@@ -64,13 +77,14 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
             board[x] = new GameActor[HEIGHT];
         }
 
-        worldWidth = 1024;
-        worldHeight = 1024;
+        boardGroup = new Group();
+        addActor(boardGroup);
+
 
         tileWidth = worldWidth / WIDTH;
         tileHeight = worldHeight / HEIGHT;
 
-        setViewport(new ExtendViewport(worldWidth, worldHeight));
+        setViewport(new ExtendViewport(worldWidth, worldHeight + 30));
         getCamera().position.set((float) worldWidth / 2, (float) worldHeight / 2, 0f);
 
         atlas = new TextureAtlas("objects-no-bg.atlas");
@@ -79,7 +93,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     }
 
     private void respawnTiles() {
-        clear();
+        boardGroup.clear();
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 spawnActor(x, y);
@@ -105,7 +119,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         GameActor actor = new GameActor(regionName, atlas.createSprite(regionName), tileWidth * x, tileHeight * y);
         board[x][y] = actor; // logical state
         actor.playSpawnAnimation();
-        addActor(actor); // visual state
+        boardGroup.addActor(actor); // visual state
 
     }
 
