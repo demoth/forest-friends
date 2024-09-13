@@ -1,6 +1,7 @@
 package org.demoth.booom;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -52,6 +53,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     int destTileY;
 
     GameActor[][] board;
+    TextureAtlas atlas;
 
     public GameStage() {
 
@@ -70,11 +72,16 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
         setViewport(new ExtendViewport(worldWidth, worldHeight));
         getCamera().position.set((float) worldWidth / 2, (float) worldHeight / 2, 0f);
 
-        TextureAtlas atlas = new TextureAtlas("objects-no-bg.atlas");
-        var regions = atlas.getRegions();
+        atlas = new TextureAtlas("objects-no-bg.atlas");
 
+        respawnTiles();
+    }
+
+    private void respawnTiles() {
+        Array<TextureAtlas.AtlasRegion> regions = atlas.getRegions();
         var random = new java.util.Random();
 
+        clear();
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 String regionName = generateNewTile(regions, random);
@@ -188,7 +195,7 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
     }
 
     @Override
-    public boolean touchDown(float screenX, float screenY, int pointer, int button) {
+    public boolean touchDown(float screenX, float screenY, int pointer, int button) { // todo: use only left button
         if (state != GameState.READY_FOR_INPUT) {
             return false;
         }
@@ -310,11 +317,16 @@ public class GameStage extends Stage implements GestureDetector.GestureListener 
 
     }
 
-    //    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-//        touchedTileY = -1;
-//        touchedTileX = -1;
-        System.out.println("touchUp: Touch up");
+    @Override
+    public boolean keyUp(int keyCode) {
+        switch (keyCode) {
+            case Input.Keys.ESCAPE:
+                Gdx.app.exit();
+                return true;
+            case Input.Keys.R:
+                respawnTiles();
+                return true;
+        }
         return false;
     }
 }
